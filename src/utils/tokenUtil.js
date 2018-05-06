@@ -4,8 +4,8 @@ export function getToken() {
 }
 
 export function setToken(token, auto = false) {
-    localStorage.clear();
-    sessionStorage.clear();
+    localStorage.removeItem("user-token");
+    sessionStorage.removeItem("user-token");
     if (auto) {
         localStorage.setItem("user-token", token);
     } else {

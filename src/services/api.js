@@ -1,6 +1,41 @@
 import { stringify } from 'qs';
 import request from '../utils/request';
 
+// --------------此为新增接口start---------------
+
+/** 基本认证 */
+export async function baseAuthorized(params) {
+  return request('/api/authorize/base', {
+    method: 'POST',
+    body: params,
+  });
+}
+
+/** 短信认证  */
+export async function smsAuthorized(params) {
+  return request('/api/authorize/sms', {
+    method: 'POST',
+    body: params,
+  });
+}
+
+/** 获取登录短信 */
+export async function obainSmsLogin(params) {
+  return request('/api/sms/login', {
+    method: 'POST',
+    body: params,
+  });
+}
+
+
+
+
+
+
+
+// --------------此为新增接口end-----------------
+
+
 export async function queryProjectNotice() {
   return request('/api/project/notice');
 }

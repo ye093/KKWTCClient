@@ -1,16 +1,51 @@
 import { routerRedux } from 'dva/router';
-import { fakeAccountLogin } from '../services/api';
+import { fakeAccountLogin, baseAuthorized, smsAuthorized, obainSmsLogin } from '../services/api';
 import { setAuthority } from '../utils/authority';
 import { reloadAuthorized } from '../utils/Authorized';
+import { setToken } from '../utils/tokenUtil';
 
 export default {
   namespace: 'login',
 
   state: {
-    status: undefined,
+    code: undefined,
   },
 
   effects: {
+    /* ----------------此处为新增start---------------- */
+    *doLogin({ payload }, { call, put }) {
+      // 判断是账号还是手机号登录
+      let serApi = baseAuthorized;
+      if (payload.type === 'mobile') {
+        serApi = smsAuthorized;
+      }
+
+      const response = yield call(serApi, payload);
+
+      yield put({
+        type: 'changeLoginStatus',
+        payload: {
+          ...response,
+          type: payload.type,
+          autoLogin: payload.autoLogin,
+        },
+      });
+
+      // 登录成功
+      if (response.code === 0) {
+        reloadAuthorized();
+        yield put(routerRedux.push('/'));
+      }
+    },
+
+
+
+
+
+    /* ----------------此处为新增end------------------ */
+
+
+
     *login({ payload }, { call, put }) {
       const response = yield call(fakeAccountLogin, payload);
       yield put({
@@ -47,11 +82,16 @@ export default {
 
   reducers: {
     changeLoginStatus(state, { payload }) {
-      setAuthority(payload.currentAuthority); // 设置权限
+      if (payload.code === 0) {
+        // 登录成功
+        setAuthority(payload.data.role, payload.autoLogin); // 设置权限
+        setToken(payload.data.token, payload.autoLogin);
+      }
 
       return {
         ...state,
-        status: payload.status,
+        code: payload.code,
+        msg: payload.msg,
         type: payload.type,
       };
     },

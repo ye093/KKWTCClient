@@ -8,10 +8,15 @@ import { getNotices } from './mock/notices';
 import { format, delay } from 'roadhog-api-doc';
 
 // 是否禁用代理
-const noProxy = process.env.NO_PROXY === 'true';
+// const noProxy = process.env.NO_PROXY === 'true';
+const noProxy = true;
+
+// 服务器端口
+const SERVER_URL = 'http://localhost:9090';
 
 // 代码中会兼容本地 service mock 以及部署站点的静态数据
 const proxy = {
+
   // 支持值为 Object 和 Array
   'GET /api/currentUser': {
     $desc: '获取当前用户接口',
@@ -137,4 +142,10 @@ const proxy = {
   },
 };
 
-export default (noProxy ? {} : delay(proxy, 1000));
+export default (noProxy ? {
+  // ----------新增接口start-----------------------
+ 'POST /api/(.*)': `${SERVER_URL}/`,
+ 'GET /api/(.*)': `${SERVER_URL}/`,
+  // ----------新增接口end-----------------------
+
+} : proxy ); // 把延时去掉 delay(proxy, 1000)
