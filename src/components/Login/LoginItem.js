@@ -46,7 +46,7 @@ function generator({ defaultProps, defaultRules, type }) {
         const { getFieldDecorator } = this.context.form;
         const options = {};
         let otherProps = {};
-        const { onChange, defaultValue, rules, name, ...restProps } = this.props;
+        const { onChange, defaultValue, rules, name, chaptchaEnable, ...restProps } = this.props;
         const { count } = this.state;
         options.rules = rules || defaultRules;
         if (onChange) {
@@ -68,7 +68,7 @@ function generator({ defaultProps, defaultRules, type }) {
                 </Col>
                 <Col span={8}>
                   <Button
-                    disabled={count}
+                    disabled={!chaptchaEnable || count}
                     className={styles.getCaptcha}
                     size="large"
                     onClick={this.onGetCaptcha}

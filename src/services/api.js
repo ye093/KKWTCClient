@@ -27,6 +27,22 @@ export async function obainSmsLogin(params) {
   });
 }
 
+/** 获取重置密码短信 */
+export async function obainSmsResetpwd(params) {
+  return request('/api/sms/resetpwd', {
+    method: 'POST',
+    body: params,
+  });
+}
+
+/** 重置密码 */
+export async function doResetpwd(params) {
+  return request('/api/authorize/resetpwd', {
+    method: 'POST',
+    body: params,
+  });
+}
+
 
 
 

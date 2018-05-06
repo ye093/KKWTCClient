@@ -2,13 +2,15 @@ import { routerRedux } from 'dva/router';
 import { fakeAccountLogin, baseAuthorized, smsAuthorized, obainSmsLogin } from '../services/api';
 import { setAuthority } from '../utils/authority';
 import { reloadAuthorized } from '../utils/Authorized';
-import { setToken } from '../utils/tokenUtil';
+import { setToken, setCaptchaToken, removeCaptchaToken } from '../utils/tokenUtil';
+import { message } from 'antd';
 
 export default {
   namespace: 'login',
 
   state: {
     code: undefined,
+    atype: '',
   },
 
   effects: {
@@ -36,6 +38,15 @@ export default {
         reloadAuthorized();
         yield put(routerRedux.push('/'));
       }
+    },
+
+    *obainCaptcha({ payload }, { call, put }) {
+      //获取短信验证码
+      const response = yield call(obainSmsLogin, payload);
+      yield put({
+        type: 'captchaResponse',
+        payload: response,
+      });
     },
 
 
@@ -86,6 +97,7 @@ export default {
         // 登录成功
         setAuthority(payload.data.role, payload.autoLogin); // 设置权限
         setToken(payload.data.token, payload.autoLogin);
+        removeCaptchaToken(); // 移除短信TOKEN
       }
 
       return {
@@ -93,7 +105,31 @@ export default {
         code: payload.code,
         msg: payload.msg,
         type: payload.type,
+        atype: '',
       };
+    },
+
+    captchaResponse(state, { payload }) {
+      if (payload.code === 0) {
+        // 短信成功发送
+        let captchaToken = payload.data.token;
+        setCaptchaToken(captchaToken);
+      }
+
+      if (payload.code === 0) {
+        message.success(payload.msg);
+      } else {
+        message.error(payload.msg);
+      }
+
+      return {
+        ...state,
+        code: payload.code,
+        msg: payload.msg,
+        type: 'mobile',
+        atype: 'captcha',
+      };
+
     },
   },
 };

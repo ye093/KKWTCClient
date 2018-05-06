@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
 import { connect } from 'dva';
 import { routerRedux, Link } from 'dva/router';
-import { Form, Input, Button, Select, Row, Col, Popover, Progress } from 'antd';
+import { Form, Input, Button, Select, Row, Col, Popover, Progress, message } from 'antd';
 import styles from './Register.less';
+import { getResCaptchaToken } from '../../utils/tokenUtil';
 
 const FormItem = Form.Item;
 const { Option } = Select;
@@ -32,11 +33,15 @@ export default class Register extends Component {
     visible: false,
     help: '',
     prefix: '86',
+    success: false,
   };
 
   componentWillReceiveProps(nextProps) {
-    const account = this.props.form.getFieldValue('mail');
-    if (nextProps.register.status === 'ok') {
+    const account = this.props.form.getFieldValue('mobile');
+    if (nextProps.register.code === 0 && this.state.success) {
+      this.setState({
+        success: false
+      });
       this.props.dispatch(
         routerRedux.push({
           pathname: '/user/register-result',
@@ -45,6 +50,11 @@ export default class Register extends Component {
           },
         })
       );
+    } else {
+      if (this.state.count !== 0) {
+        clearInterval(this.interval);
+        this.setState({ count: 0 });
+      }
     }
   }
 
@@ -53,6 +63,22 @@ export default class Register extends Component {
   }
 
   onGetCaptcha = () => {
+    const mobile = this.props.form.getFieldValue('mobile');
+    let reg = /^1\d{10,12}$/;
+    if (!reg.test(mobile)) {
+      message.info('请输入正确的手机号');
+      return;
+    }
+    this.setState({
+      success: false
+    });
+    this.props.dispatch({
+      type: 'register/gitCaptCha',
+      payload: {
+        mobile,
+      },
+    });
+
     let count = 59;
     this.setState({ count });
     this.interval = setInterval(() => {
@@ -78,13 +104,22 @@ export default class Register extends Component {
 
   handleSubmit = e => {
     e.preventDefault();
+    const token = getResCaptchaToken();
+    if (token.length === 0) {
+      message.info('请先获取验证码');
+      return;
+    }
+    this.setState({
+      success: true
+    });
+
     this.props.form.validateFields({ force: true }, (err, values) => {
       if (!err) {
         this.props.dispatch({
           type: 'register/submit',
           payload: {
             ...values,
-            prefix: this.state.prefix,
+            token,
           },
         });
       }
@@ -162,21 +197,31 @@ export default class Register extends Component {
     const { count, prefix } = this.state;
     return (
       <div className={styles.main}>
-        <h3>注册</h3>
+        <h3>重置密码</h3>
         <Form onSubmit={this.handleSubmit}>
           <FormItem>
-            {getFieldDecorator('mail', {
-              rules: [
-                {
-                  required: true,
-                  message: '请输入邮箱地址！',
-                },
-                {
-                  type: 'email',
-                  message: '邮箱地址格式错误！',
-                },
-              ],
-            })(<Input size="large" placeholder="邮箱" />)}
+            <InputGroup compact>
+              <Select
+                size="large"
+                value={prefix}
+                onChange={this.changePrefix}
+                style={{ width: '20%' }}
+              >
+                <Option value="86">+86</Option>
+              </Select>
+              {getFieldDecorator('mobile', {
+                rules: [
+                  {
+                    required: true,
+                    message: '请输入手机号！',
+                  },
+                  {
+                    pattern: /^1\d{10}$/,
+                    message: '手机号格式错误！',
+                  },
+                ],
+              })(<Input size="large" style={{ width: '80%' }} placeholder="11位手机号" />)}
+            </InputGroup>
           </FormItem>
           <FormItem help={this.state.help}>
             <Popover
@@ -216,31 +261,6 @@ export default class Register extends Component {
             })(<Input size="large" type="password" placeholder="确认密码" />)}
           </FormItem>
           <FormItem>
-            <InputGroup compact>
-              <Select
-                size="large"
-                value={prefix}
-                onChange={this.changePrefix}
-                style={{ width: '20%' }}
-              >
-                <Option value="86">+86</Option>
-                <Option value="87">+87</Option>
-              </Select>
-              {getFieldDecorator('mobile', {
-                rules: [
-                  {
-                    required: true,
-                    message: '请输入手机号！',
-                  },
-                  {
-                    pattern: /^1\d{10}$/,
-                    message: '手机号格式错误！',
-                  },
-                ],
-              })(<Input size="large" style={{ width: '80%' }} placeholder="11位手机号" />)}
-            </InputGroup>
-          </FormItem>
-          <FormItem>
             <Row gutter={8}>
               <Col span={16}>
                 {getFieldDecorator('captcha', {
@@ -272,10 +292,10 @@ export default class Register extends Component {
               type="primary"
               htmlType="submit"
             >
-              注册
+              确认提交
             </Button>
             <Link className={styles.login} to="/user/login">
-              使用已有账户登录
+              返回登录页面
             </Link>
           </FormItem>
         </Form>

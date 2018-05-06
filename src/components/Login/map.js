@@ -45,7 +45,7 @@ const map = {
         message: 'Please enter mobile number!',
       },
       {
-        pattern: /^1\d{10}$/,
+        pattern: /^1\d{10,12}$/,
         message: 'Wrong mobile number format!',
       },
     ],
