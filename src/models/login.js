@@ -47,7 +47,8 @@ export default {
 
   reducers: {
     changeLoginStatus(state, { payload }) {
-      setAuthority(payload.currentAuthority);
+      setAuthority(payload.currentAuthority); // 设置权限
+
       return {
         ...state,
         status: payload.status,

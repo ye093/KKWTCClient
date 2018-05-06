@@ -138,7 +138,7 @@ const menuData = [
     name: '账户',
     icon: 'user',
     path: 'user',
-    authority: 'guest',
+    authority: 'SYS_ADMIN',
     children: [
       {
         name: '登录',

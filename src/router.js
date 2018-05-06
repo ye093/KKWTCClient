@@ -25,7 +25,8 @@ function RouterConfig({ history, app }) {
           <AuthorizedRoute
             path="/"
             render={props => <BasicLayout {...props} />}
-            authority={['admin', 'user']}
+            // authority={['admin', 'user']} // 注释掉
+            authority={['ADMIN', 'SYS_ADMIN']} // 后继有TOKEN即可进入
             redirectPath="/user/login"
           />
         </Switch>
